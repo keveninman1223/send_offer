@@ -20,9 +20,20 @@ config = pdfkit.configuration(wkhtmltopdf="/usr/local/bin/wkhtmltopdf")
 
 
 def generate_offer_pdf(
-    seller_name, property_address, offer_amount, seller_email, terms
+    seller_name,
+    property_address,
+    offer_amount,
+    seller_email,
+    terms,
+    inspection_period,
+    financing,
+    close_of_escrow,
 ):
     """Generate a well-formatted PDF with proper spacing and emoji fixes."""
+
+    # If terms are empty or just spaces, set default text
+    if not terms.strip():
+        terms = "Property to be sold in 'as-is' condition."
 
     html = f"""
     <html>
@@ -78,9 +89,9 @@ def generate_offer_pdf(
 
         <p class="offer-details"><strong>Offer Amount:</strong> ${int(offer_amount):,}</p>
         <p class="offer-details"><strong>Terms:</strong> {terms}</p>
-        <p class="offer-details"><strong>Inspection Period:</strong> 7 days</p>
-        <p class="offer-details"><strong>Financing:</strong> Cash or Hard Money</p>
-        <p class="offer-details"><strong>Close of Escrow:</strong> 30 days</p>
+        <p class="offer-details"><strong>Inspection Period:</strong> {inspection_period} days</p>
+        <p class="offer-details"><strong>Financing:</strong> {financing}</p>
+        <p class="offer-details"><strong>Close of Escrow:</strong> {close_of_escrow} days</p>
 
         <p class="cta"><i>If you are interested, please let us know by clicking the <strong>"Accept Offer"</strong> button in the email. Please note that clicking this button does not obligate you in any way, it simply lets our team know you are interested in proceeding with a formal offer letter.</i></p>
         
@@ -89,10 +100,7 @@ def generate_offer_pdf(
         <p class="spacing">For any further questions, please feel free to reply to the email, and a member of our team will reach out to you shortly. Thank you!</p>
 
         <p><strong>Best Regards,</strong><br>
-        Capital House Buyers</p>
-
-        <p class="spacing">Find out what others have to say about us!<br>
-        <a href="https://www.cashforhousesca.com/reviews/" style="font-weight: bold;">Check our reviews here</a></p>
+        CC Invest RE Team</p>
     </body>
     </html>
     """
@@ -180,6 +188,9 @@ def send_offer():
     seller_email = request.form["email"]
     property_address = request.form["address"]
     offer_amount = request.form["offer"]
+    inspection_period = request.form.get("inspection_period", "7 days")
+    financing = request.form.get("financing", "Cash or Hard Money")
+    close_of_escrow = request.form.get("close_of_escrow", "30")  # Default to 30 days
     terms = request.form["terms"]
 
     # If seller_name is empty, default to "Homeowner"
@@ -191,11 +202,21 @@ def send_offer():
     print(f"Email: {seller_email}")
     print(f"Property: {property_address}")
     print(f"Offer: {offer_amount}")
+    print(f"Inspection Period: {inspection_period} days")
+    print(f"Financing: {financing}")
+    print(f"Close of Escrow: {close_of_escrow} days")
     print(f"Terms: {terms}")
 
     try:
         pdf_path = generate_offer_pdf(
-            seller_name, property_address, offer_amount, seller_email, terms
+            seller_name,
+            property_address,
+            offer_amount,
+            seller_email,
+            terms,
+            inspection_period,
+            financing,
+            close_of_escrow,
         )
         print(f"✅ PDF generated successfully at: {pdf_path}")
 
@@ -209,6 +230,9 @@ def send_offer():
     Seller Name: {seller_name} <br>
     Property Address: {property_address} <br>
     Offer Amount: ${offer_amount} <br>
+    Inspection Period: {inspection_period} days <br>
+    Financing: {financing} <br>
+    Close of Escrow: {close_of_escrow} days <br>
     Terms: {terms} <br>
     <br><strong>Check your email for the offer!</strong>
     """
