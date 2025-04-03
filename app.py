@@ -139,6 +139,20 @@ def send_email(seller_email, pdf_path, property_address, offer_amount):
     print(f"✅ Email sent to {seller_email} (Message ID: {send['id']})")
 
 
+def send_team_notification(subject, body):
+    token_info = json.loads(os.environ.get("GOOGLE_TOKEN"))
+    creds = Credentials.from_authorized_user_info(token_info)
+    service = build("gmail", "v1", credentials=creds)
+
+    message = MIMEText(body)
+    message["to"] = "offers@capitalreigroup.com"
+    message["from"] = "ccinvestre@gmail.com"
+    message["subject"] = subject
+
+    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+    service.users().messages().send(userId="me", body={"raw": raw}).execute()
+
+
 @app.route("/")
 def home():
     return render_template("send_offer.html")
@@ -200,6 +214,18 @@ def accept_offer():
     seller_email = request.args.get("email")
     property_address = request.args.get("address")
 
+    # Send notification to team
+    subject = f"🎉 Offer Accepted - {property_address}"
+    body = f"""
+    The seller has accepted the offer!
+
+    📍 Property: {property_address}
+    📧 Email: {seller_email}
+    
+    Please follow up ASAP.
+    """
+    send_team_notification(subject, body)
+
     return f"""
     <h2>Thank You!</h2>
     <p>Your offer for {property_address} has been accepted.</p>
@@ -218,24 +244,13 @@ def counter_offer():
         subject = f"Counter Offer Received for {property_address}"
         body = f"""
         A counteroffer has been submitted for {property_address}.
-        
-        Seller Email: {seller_email}
-        Counter Offer Amount: ${counter_amount}
-        Additional Notes: {notes}
+
+        📧 Seller Email: {seller_email}
+        💰 Counter Offer: ${counter_amount}
+        📝 Notes: {notes}
         """
 
-        # Reuse the Gmail API for counter email
-        token_info = json.loads(os.environ.get("GOOGLE_TOKEN"))
-        creds = Credentials.from_authorized_user_info(token_info)
-        service = build("gmail", "v1", credentials=creds)
-
-        message = MIMEText(body)
-        message["to"] = "ccinvestre@gmail.com"
-        message["from"] = "ccinvestre@gmail.com"
-        message["subject"] = subject
-
-        raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
-        service.users().messages().send(userId="me", body={"raw": raw}).execute()
+        send_team_notification(subject, body)
 
         return "<h2>Thank you! Your counteroffer has been submitted.</h2>"
 
