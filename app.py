@@ -86,7 +86,7 @@ def generate_offer_pdf(
         <p class="offer-details"><strong>Financing:</strong> {financing}</p>
         <p class="offer-details"><strong>Close of Escrow:</strong> {close_of_escrow} days</p>
 
-        <p class="cta"><i>If you are interested, please let us know by clicking the <strong>"Accept Offer"</strong> button in the email. Clicking this button does not obligate you in any way — it simply lets our team know you’re interested in proceeding.</i></p>
+        <p class="cta"><i>If you are interested, please let us know by clicking the <strong>"Accept Offer"</strong> button in the email. Clicking this button does not obligate you in any way, it simply lets our team know you’re interested in proceeding.</i></p>
         <p class="cta"><i>Please also click the <strong>"Counter This Offer"</strong> button if you have different terms in mind!</i></p>
 
         <p class="spacing">For any questions, reply to the email and a team member will follow up shortly. Thank you!</p>
