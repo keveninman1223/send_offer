@@ -15,7 +15,7 @@ app = Flask(__name__)
 os.makedirs("offers", exist_ok=True)
 
 # PDFKit Configuration (Ensure correct wkhtmltopdf path)
-config = pdfkit.configuration(wkhtmltopdf="/usr/local/bin/wkhtmltopdf")
+config = pdfkit.configuration()
 
 
 def generate_offer_pdf(
