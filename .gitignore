@@ -4,3 +4,4 @@ venv/
 offers/*.pdf
 
 client_secret.json
+token.json
