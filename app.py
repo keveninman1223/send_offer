@@ -8,6 +8,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 import json
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -101,7 +102,9 @@ def generate_offer_pdf(
     return pdf_path
 
 
-def send_email(seller_email, pdf_path, property_address, offer_amount):
+def send_email(
+    seller_email, pdf_path, property_address, offer_amount, offer_sent_timestamp
+):
     token_info = json.loads(os.environ.get("GOOGLE_TOKEN"))
     creds = Credentials.from_authorized_user_info(token_info)
     service = build("gmail", "v1", credentials=creds)
@@ -118,7 +121,7 @@ def send_email(seller_email, pdf_path, property_address, offer_amount):
         <p>Please see the attached offer letter for full details.</p>
         <p>
             👉 <a href="http://127.0.0.1:5000/accept?email={seller_email}&address={property_address}">Accept Offer</a><br>
-            👉 <a href="http://127.0.0.1:5000/counter?email={seller_email}&address={property_address}&offer={offer_amount}">Counter This Offer</a>
+            👉 <a href="http://127.0.0.1:5000/counter?email={seller_email}&address={property_address}&offer={offer_amount}&sent={offer_sent_timestamp}">Counter This Offer</a>
 
         </p>
         <p>Best,<br>CC Invest Team</p>
@@ -169,6 +172,7 @@ def send_offer():
     financing = request.form.get("financing", "Cash or Hard Money")
     close_of_escrow = request.form.get("close_of_escrow", "30")
     terms = request.form["terms"]
+    offer_sent_timestamp = datetime.now().strftime("%Y-%m-%d %I:%M %p")
 
     print("Generating PDF with the following details:")
     print(f"Seller Name: {seller_name}")
@@ -193,7 +197,9 @@ def send_offer():
         )
         print(f"✅ PDF generated successfully at: {pdf_path}")
 
-        send_email(seller_email, pdf_path, property_address, offer_amount)
+        send_email(
+            seller_email, pdf_path, property_address, offer_amount, offer_sent_timestamp
+        )
     except Exception as e:
         print(f"❌ Error: {e}")
 
@@ -242,12 +248,14 @@ def counter_offer():
         original_offer = request.form["offer"]
         counter_amount = request.form["counter_offer"]
         notes = request.form["notes"]
+        offer_sent_timestamp = request.args.get("sent")
 
         subject = f"Counter Offer Received for {property_address}"
         body = f"""
         A counteroffer has been submitted for {property_address}.
 
         📧 Seller Email: {seller_email}
+        📅 Offer Originally Sent: {offer_sent_timestamp}
         💰 Original Offer: ${int(original_offer):,}
         🔁 Counter Offer: ${int(counter_amount):,}
         📝 Notes: {notes}
@@ -260,6 +268,7 @@ def counter_offer():
     seller_email = request.args.get("email")
     property_address = request.args.get("address")
     original_offer = request.args.get("offer")
+    offer_sent_timestamp = request.args.get("sent")
 
     return f"""
     <h2>Submit a Counter Offer</h2>
@@ -267,6 +276,8 @@ def counter_offer():
         <input type="hidden" name="email" value="{seller_email}">
         <input type="hidden" name="address" value="{property_address}">
         <input type="hidden" name="offer" value="{original_offer}"> 
+        <input type="hidden" name="sent" value="{offer_sent_timestamp}">
+
         
         <label for="counter_offer">Your Counter Offer:</label>
         <input type="number" name="counter_offer" required><br><br>
