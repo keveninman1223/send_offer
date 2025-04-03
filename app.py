@@ -7,6 +7,7 @@ import base64
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
+import json
 
 app = Flask(__name__)
 
@@ -101,9 +102,8 @@ def generate_offer_pdf(
 
 
 def send_email(seller_email, pdf_path, property_address, offer_amount):
-    creds = Credentials.from_authorized_user_file(
-        "token.json", ["https://www.googleapis.com/auth/gmail.send"]
-    )
+    token_info = json.loads(os.environ.get("GOOGLE_TOKEN"))
+    creds = Credentials.from_authorized_user_info(token_info)
     service = build("gmail", "v1", credentials=creds)
 
     message = MIMEMultipart()
@@ -225,9 +225,8 @@ def counter_offer():
         """
 
         # Reuse the Gmail API for counter email
-        creds = Credentials.from_authorized_user_file(
-            "token.json", ["https://www.googleapis.com/auth/gmail.send"]
-        )
+        token_info = json.loads(os.environ.get("GOOGLE_TOKEN"))
+        creds = Credentials.from_authorized_user_info(token_info)
         service = build("gmail", "v1", credentials=creds)
 
         message = MIMEText(body)
