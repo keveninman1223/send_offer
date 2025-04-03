@@ -118,7 +118,8 @@ def send_email(seller_email, pdf_path, property_address, offer_amount):
         <p>Please see the attached offer letter for full details.</p>
         <p>
             👉 <a href="http://127.0.0.1:5000/accept?email={seller_email}&address={property_address}">Accept Offer</a><br>
-            👉 <a href="http://127.0.0.1:5000/counter?email={seller_email}&address={property_address}">Counter This Offer</a>
+            👉 <a href="http://127.0.0.1:5000/counter?email={seller_email}&address={property_address}&offer={offer_amount}">Counter This Offer</a>
+
         </p>
         <p>Best,<br>CC Invest Team</p>
     </body>
@@ -238,6 +239,7 @@ def counter_offer():
     if request.method == "POST":
         seller_email = request.form["email"]
         property_address = request.form["address"]
+        original_offer = request.form["offer"]
         counter_amount = request.form["counter_offer"]
         notes = request.form["notes"]
 
@@ -246,7 +248,8 @@ def counter_offer():
         A counteroffer has been submitted for {property_address}.
 
         📧 Seller Email: {seller_email}
-        💰 Counter Offer: ${counter_amount}
+        💰 Original Offer: ${int(original_offer):,}
+        🔁 Counter Offer: ${int(counter_amount):,}
         📝 Notes: {notes}
         """
 
@@ -256,12 +259,14 @@ def counter_offer():
 
     seller_email = request.args.get("email")
     property_address = request.args.get("address")
+    original_offer = request.args.get("offer")
 
     return f"""
     <h2>Submit a Counter Offer</h2>
     <form method="post">
         <input type="hidden" name="email" value="{seller_email}">
         <input type="hidden" name="address" value="{property_address}">
+        <input type="hidden" name="offer" value="{original_offer}"> 
         
         <label for="counter_offer">Your Counter Offer:</label>
         <input type="number" name="counter_offer" required><br><br>
