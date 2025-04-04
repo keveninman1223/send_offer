@@ -120,7 +120,7 @@ def send_email(
         <p>We are pleased to present a preliminary offer for your property at <strong>{property_address}</strong> for <strong>${int(offer_amount):,}</strong>.</p>
         <p>Please see the attached offer letter for full details.</p>
         <p>
-            👉 <a href="http://127.0.0.1:5000/accept?email={seller_email}&address={property_address}">Accept Offer</a><br>
+            👉 <a href="http://127.0.0.1:5000/accept?email={seller_email}&address={property_address}&offer={offer_amount}&sent={offer_sent_timestamp}">Accept Offer</a><br>
             👉 <a href="http://127.0.0.1:5000/counter?email={seller_email}&address={property_address}&offer={offer_amount}&sent={offer_sent_timestamp}">Counter This Offer</a>
 
         </p>
@@ -220,6 +220,8 @@ def send_offer():
 def accept_offer():
     seller_email = request.args.get("email")
     property_address = request.args.get("address")
+    offer_sent_timestamp = request.args.get("sent")
+    offer_amount = request.args.get("offer")
 
     # Send notification to team
     subject = f"🎉 Offer Accepted - {property_address}"
@@ -228,6 +230,8 @@ def accept_offer():
 
     📍 Property: {property_address}
     📧 Email: {seller_email}
+    💰 Accepted Offer: ${int(offer_amount):,}
+    📅 Offer Originally Sent: {offer_sent_timestamp}
     
     Please follow up ASAP.
     """
