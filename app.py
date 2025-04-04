@@ -212,7 +212,7 @@ def send_offer():
     Financing: {financing} <br>
     Close of Escrow: {close_of_escrow} days <br>
     Terms: {terms} <br>
-    <br><strong>Check your email for the offer!</strong>
+    <br><strong>Your offer has been sent!</strong>
     """
 
 
