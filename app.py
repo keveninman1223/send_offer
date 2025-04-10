@@ -89,7 +89,7 @@ def generate_offer_pdf(
         <p class="offer-details"><strong>Financing:</strong> {financing}</p>
         <p class="offer-details"><strong>Close of Escrow:</strong> {close_of_escrow} days</p>
 
-        <p class="cta"><i>If you are interested in this offer, simply reply to the email and let us know — we will then get started preparing the formal agreement.</i></p>
+        <p class="cta"><i>If you are interested in this offer, simply reply to the email and let us know. We will then get started preparing the formal agreement.</i></p>
         <p class="cta"><i>If you would like to counter the offer, just reply with your terms and we will review them promptly.</i></p>
 
 
