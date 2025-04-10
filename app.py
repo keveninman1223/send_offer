@@ -89,8 +89,9 @@ def generate_offer_pdf(
         <p class="offer-details"><strong>Financing:</strong> {financing}</p>
         <p class="offer-details"><strong>Close of Escrow:</strong> {close_of_escrow} days</p>
 
-        <p class="cta"><i>If you are interested, please let us know by clicking the <strong>"Accept Offer"</strong> button in the email. Clicking this button does not obligate you in any way, it simply lets our team know you are interested in proceeding.</i></p>
-        <p class="cta"><i>Please also click the <strong>"Counter This Offer"</strong> button if you have different terms in mind!</i></p>
+        <p class="cta"><i>If you are interested in this offer, simply reply to the email and let us know — we will then get started preparing the formal agreement.</i></p>
+        <p class="cta"><i>If you would like to counter the offer, just reply with your terms and we will review them promptly.</i></p>
+
 
         <p class="spacing">For any questions, reply to the email and a team member will follow up shortly. Thank you!</p>
         <p><strong>Best Regards,</strong><br>CC Invest RE Team</p>
@@ -129,11 +130,11 @@ def send_email(
     <body>
         <p>We are pleased to present a preliminary offer for your property at <strong>{property_address}</strong> for <strong>${int(offer_amount):,}</strong>.</p>
         <p>Please see the attached offer letter for full details.</p>
-        <p>
-            👉 <a href="http://127.0.0.1:5000/accept?email={seller_email}&address={property_address}&offer={offer_amount}&sent={offer_sent_timestamp}">Accept Offer</a><br>
-            👉 <a href="http://127.0.0.1:5000/counter?email={seller_email}&address={property_address}&offer={offer_amount}&sent={offer_sent_timestamp}">Counter This Offer</a>
 
-        </p>
+        <p>If you'd like to <strong>accept this offer</strong>, simply reply to this email and let us know — we'll get started drafting the formal agreement.</p>
+        <p>If you'd like to <strong>counter the offer</strong>, reply with your terms and we’ll review them immediately.</p>
+
+        <p>We look forward to hearing from you!</p>
         <p>Best,<br>CC Invest Team</p>
     </body>
     </html>
@@ -235,82 +236,82 @@ def send_offer():
     """
 
 
-@app.route("/accept")
-def accept_offer():
-    seller_email = request.args.get("email")
-    property_address = request.args.get("address")
-    offer_sent_timestamp = request.args.get("sent")
-    offer_amount = request.args.get("offer")
+# @app.route("/accept")
+# def accept_offer():
+#    seller_email = request.args.get("email")
+#    property_address = request.args.get("address")
+#    offer_sent_timestamp = request.args.get("sent")
+#    offer_amount = request.args.get("offer")
 
-    # Send notification to team
-    subject = f"🎉 Offer Accepted - {property_address}"
-    body = f"""
-    The seller has accepted the offer!
+# Send notification to team
+#    subject = f"🎉 Offer Accepted - {property_address}"
+#    body = f"""
+#    The seller has accepted the offer!
 
-    📍 Property: {property_address}
-    📧 Email: {seller_email}
-    💰 Accepted Offer: ${int(offer_amount):,}
-    📅 Offer Originally Sent: {offer_sent_timestamp}
-    
-    Please follow up ASAP.
-    """
-    send_team_notification(subject, body)
+#    📍 Property: {property_address}
+#    📧 Email: {seller_email}
+#    💰 Accepted Offer: ${int(offer_amount):,}
+#    📅 Offer Originally Sent: {offer_sent_timestamp}
 
-    return f"""
-    <h2>Thank You!</h2>
-    <p>Your offer for {property_address} has been accepted.</p>
-    <p>Our team will reach out to you shortly to finalize the details.</p>
-    """
+#    Please follow up ASAP.
+#    """
+#    send_team_notification(subject, body)
+
+#    return f"""
+#    <h2>Thank You!</h2>
+#    <p>Your offer for {property_address} has been accepted.</p>
+#    <p>Our team will reach out to you shortly to finalize the details.</p>
+#    """
 
 
-@app.route("/counter", methods=["GET", "POST"])
-def counter_offer():
-    if request.method == "POST":
-        seller_email = request.form["email"]
-        property_address = request.form["address"]
-        original_offer = request.form["offer"]
-        counter_amount = request.form["counter_offer"]
-        notes = request.form["notes"]
-        offer_sent_timestamp = request.args.get("sent")
+# @app.route("/counter", methods=["GET", "POST"])
+# def counter_offer():
+#    if request.method == "POST":
+#        seller_email = request.form["email"]
+#        property_address = request.form["address"]
+#        original_offer = request.form["offer"]
+#        counter_amount = request.form["counter_offer"]
+#        notes = request.form["notes"]
+#        offer_sent_timestamp = request.args.get("sent")
 
-        subject = f"Counter Offer Received for {property_address}"
-        body = f"""
-        A counteroffer has been submitted for {property_address}.
+#        subject = f"Counter Offer Received for {property_address}"
+#        body = f"""
+#        A counteroffer has been submitted for {property_address}.
 
-        📧 Seller Email: {seller_email}
-        📅 Offer Originally Sent: {offer_sent_timestamp}
-        💰 Original Offer: ${int(original_offer):,}
-        🔁 Counter Offer: ${int(counter_amount):,}
-        📝 Notes: {notes}
-        """
+#        📧 Seller Email: {seller_email}
+#        📅 Offer Originally Sent: {offer_sent_timestamp}
+#        💰 Original Offer: ${int(original_offer):,}
+#        🔁 Counter Offer: ${int(counter_amount):,}
+#        📝 Notes: {notes}
+#        """
 
-        send_team_notification(subject, body)
+#        send_team_notification(subject, body)
 
-        return "<h2>Thank you! Your counteroffer has been submitted.</h2>"
+#        return "<h2>Thank you! Your counteroffer has been submitted.</h2>"
 
-    seller_email = request.args.get("email")
-    property_address = request.args.get("address")
-    original_offer = request.args.get("offer")
-    offer_sent_timestamp = request.args.get("sent")
+#    seller_email = request.args.get("email")
+#    property_address = request.args.get("address")
+#    original_offer = request.args.get("offer")
+#    offer_sent_timestamp = request.args.get("sent")
 
-    return f"""
-    <h2>Submit a Counter Offer</h2>
-    <form method="post">
-        <input type="hidden" name="email" value="{seller_email}">
-        <input type="hidden" name="address" value="{property_address}">
-        <input type="hidden" name="offer" value="{original_offer}"> 
-        <input type="hidden" name="sent" value="{offer_sent_timestamp}">
+#    return f"""
+#    <h2>Submit a Counter Offer</h2>
+#    <form method="post">
+#        <input type="hidden" name="email" value="{seller_email}">
+#        <input type="hidden" name="address" value="{property_address}">
+#        <input type="hidden" name="offer" value="{original_offer}">
+#        <input type="hidden" name="sent" value="{offer_sent_timestamp}">
 
-        
-        <label for="counter_offer">Your Counter Offer:</label>
-        <input type="number" name="counter_offer" required><br><br>
 
-        <label for="notes">Additional Notes:</label>
-        <textarea name="notes"></textarea><br><br>
+#        <label for="counter_offer">Your Counter Offer:</label>
+#        <input type="number" name="counter_offer" required><br><br>
 
-        <button type="submit">Submit Counter Offer</button>
-    </form>
-    """
+#        <label for="notes">Additional Notes:</label>
+#        <textarea name="notes"></textarea><br><br>
+
+#        <button type="submit">Submit Counter Offer</button>
+#    </form>
+#    """
 
 
 if __name__ == "__main__":
