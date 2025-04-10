@@ -9,6 +9,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 import json
 from datetime import datetime
+from google.auth.transport.requests import Request
 
 app = Flask(__name__)
 
@@ -105,8 +106,17 @@ def generate_offer_pdf(
 def send_email(
     seller_email, pdf_path, property_address, offer_amount, offer_sent_timestamp
 ):
-    token_info = json.loads(os.environ.get("GOOGLE_TOKEN"))
+    # ✅ Load token info directly from the file instead of env variable
+    with open("token.json", "r") as f:
+        token_info = json.load(f)
     creds = Credentials.from_authorized_user_info(token_info)
+
+    # ✅ Auto-refresh if expired
+    if creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+        with open("token.json", "w") as token_file:
+            token_file.write(creds.to_json())
+
     service = build("gmail", "v1", credentials=creds)
 
     message = MIMEMultipart()
@@ -144,8 +154,17 @@ def send_email(
 
 
 def send_team_notification(subject, body):
-    token_info = json.loads(os.environ.get("GOOGLE_TOKEN"))
+    # ✅ Load token directly from file
+    with open("token.json", "r") as f:
+        token_info = json.load(f)
     creds = Credentials.from_authorized_user_info(token_info)
+
+    # ✅ Auto-refresh if expired
+    if creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+        with open("token.json", "w") as token_file:
+            token_file.write(creds.to_json())
+
     service = build("gmail", "v1", credentials=creds)
 
     message = MIMEText(body)
