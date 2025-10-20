@@ -1,15 +1,17 @@
 from flask import Flask, render_template, request
 import pdfkit
 import os
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
-import base64
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
+
+# from google.oauth2.credentials import Credentials
+# from googleapiclient.discovery import build
+# import base64
+# from email.mime.text import MIMEText
+# from email.mime.multipart import MIMEMultipart
+# from email.mime.application import MIMEApplication
 import json
 from datetime import datetime
-from google.auth.transport.requests import Request
+
+# from google.auth.transport.requests import Request
 
 app = Flask(__name__)
 
@@ -107,51 +109,47 @@ def generate_offer_pdf(
 def send_email(
     seller_email, pdf_path, property_address, offer_amount, offer_sent_timestamp
 ):
-    # ✅ Load token info directly from the file instead of env variable
-    with open("token.json", "r") as f:
-        token_info = json.load(f)
-    creds = Credentials.from_authorized_user_info(token_info)
+    import resend
 
-    # ✅ Auto-refresh if expired
-    if creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-        with open("token.json", "w") as token_file:
-            token_file.write(creds.to_json())
+    # Set your Resend API key
+    resend.api_key = os.environ.get("RESEND_API_KEY")
 
-    service = build("gmail", "v1", credentials=creds)
-
-    message = MIMEMultipart()
-    message["to"] = seller_email
-    message["from"] = "ccinvestre@gmail.com"
-    message["subject"] = f"Offer for Your Property at {property_address}"
+    # Read the PDF file
+    with open(pdf_path, "rb") as pdf:
+        pdf_content = pdf.read()
 
     html_content = f"""
-    <html>
-    <body>
-        <p>We are pleased to present a preliminary offer for your property at <strong>{property_address}</strong> for <strong>${int(offer_amount):,}</strong>.</p>
-        <p>Please see the attached offer letter for full details.</p>
+<html>
+<body>
+    <p>We are pleased to present a preliminary offer for your property at <strong>{property_address}</strong> for <strong>${offer_amount}</strong>.</p>
+    <p>Please see the attached offer letter for full details.</p>
+    
+    <p>If you'd like to <strong>accept this offer</strong>, simply reply to this email and let us know — we'll get started immediately!</p>
+    <p>If you'd like to <strong>counter the offer</strong>, reply with your terms and we'll review them immediately.</p>
+    
+    <p>We look forward to hearing from you!</p>
+    <p>Best,<br>CC Invest Team</p>
+</body>
+</html>
+"""
 
-        <p>If you'd like to <strong>accept this offer</strong>, simply reply to this email and let us know — we'll get started drafting the formal agreement.</p>
-        <p>If you'd like to <strong>counter the offer</strong>, reply with your terms and we’ll review them immediately.</p>
+    try:
+        params = {
+            "from": "CC Invest Team <onboarding@resend.dev>",  # Change this later to your domain
+            "to": [seller_email],
+            "subject": f"Offer for Your Property at {property_address}",
+            "html": html_content,
+            "attachments": [
+                {"filename": "Preliminary_Offer.pdf", "content": list(pdf_content)}
+            ],
+        }
 
-        <p>We look forward to hearing from you!</p>
-        <p>Best,<br>CC Invest Team</p>
-    </body>
-    </html>
-    """
-
-    message.attach(MIMEText(html_content, "html"))
-
-    with open(pdf_path, "rb") as pdf:
-        attachment = MIMEApplication(pdf.read(), _subtype="pdf")
-        attachment.add_header(
-            "Content-Disposition", "attachment", filename="Preliminary_Offer.pdf"
-        )
-        message.attach(attachment)
-
-    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
-    send = service.users().messages().send(userId="me", body={"raw": raw}).execute()
-    print(f"✅ Email sent to {seller_email} (Message ID: {send['id']})")
+        email = resend.Emails.send(params)
+        print(f"✅ Email sent to {seller_email} (Message ID: {email['id']})")
+        return True
+    except Exception as e:
+        print(f"❌ Error sending email: {e}")
+        return False
 
 
 def send_team_notification(subject, body):
