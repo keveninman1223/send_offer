@@ -131,7 +131,7 @@ def send_email(
             "to": [seller_email],
             "subject": f"Offer for Your Property at {property_address}",
             "html": html_content,
-            "reply_to": ["offers@capitalreigroup.com"],
+            "reply_to": ["replies@ccinvestre.com"],
             "attachments": [
                 {"filename": "Preliminary_Offer.pdf", "content": list(pdf_content)}
             ],
