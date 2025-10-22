@@ -11,15 +11,15 @@
 
         <label for="seller_name">Seller Name:</label>
         <input type="text" name="seller_name"><br>
-        <small style="color:gray;">Name not required — will default to “Homeowner” if left blank</small><br><br>
+        <small style="color:gray;">Name not required — will default to "Homeowner" if left blank</small><br><br>
 
         <label for="email">Seller Email: <span style="color:red">*</span></label>
         <input type="email" name="email" required><br>
-        <small style="color:gray;">Required – we’ll send the offer to this email</small><br><br>
+        <small style="color:gray;">Required – we'll send the offer to this email</small><br><br>
 
         <label for="address">Property Address: <span style="color:red">*</span></label>
         <input type="text" name="address" required><br>
-        <small style="color:gray;">Required – address of the property you’re offering on</small><br><br>
+        <small style="color:gray;">Required – address of the property you're offering on</small><br><br>
 
         <label for="offer">Offer Amount: <span style="color:red">*</span></label>
         <input type="number" name="offer" required><br>
@@ -36,10 +36,28 @@
 
         <label for="terms">Terms:</label>
         <textarea name="terms"></textarea><br>
-        <small style="color:gray;">If left blank, terms will default to “Property to be sold in ‘as-is’ condition” on the offer letter.</small><br><br>
+        <small style="color:gray;">If left blank, terms will default to "Property to be sold in 'as-is' condition" on the offer letter.</small><br><br>
+
+        <!-- Hidden fields for Salesforce integration -->
+        <input type="hidden" name="lead_id" id="lead_id" value="">
+        <input type="hidden" name="opportunity_id" id="opportunity_id" value="">
 
         <button type="submit">Send Offer</button>
     </form>
+
+    <script>
+        // Get URL parameters to populate hidden fields
+        const urlParams = new URLSearchParams(window.location.search);
+        const leadId = urlParams.get('lead_id');
+        const opportunityId = urlParams.get('opportunity_id');
+        
+        if (leadId) {
+            document.getElementById('lead_id').value = leadId;
+        }
+        if (opportunityId) {
+            document.getElementById('opportunity_id').value = opportunityId;
+        }
+    </script>
 </body>
 </html>
 

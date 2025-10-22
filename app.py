@@ -1,17 +1,9 @@
 from flask import Flask, render_template, request
 import pdfkit
 import os
-
-# from google.oauth2.credentials import Credentials
-# from googleapiclient.discovery import build
-# import base64
-# from email.mime.text import MIMEText
-# from email.mime.multipart import MIMEMultipart
-# from email.mime.application import MIMEApplication
+import requests
 import json
 from datetime import datetime
-
-# from google.auth.transport.requests import Request
 
 app = Flask(__name__)
 
@@ -135,7 +127,7 @@ def send_email(
 
     try:
         params = {
-            "from": "CC Invest Team <onboarding@resend.dev>",  # Change this later to your domain
+            "from": "CC Invest Team <offers@ccinvestre.com>",
             "to": [seller_email],
             "subject": f"Offer for Your Property at {property_address}",
             "html": html_content,
@@ -150,29 +142,6 @@ def send_email(
     except Exception as e:
         print(f"❌ Error sending email: {e}")
         return False
-
-
-def send_team_notification(subject, body):
-    # ✅ Load token directly from file
-    with open("token.json", "r") as f:
-        token_info = json.load(f)
-    creds = Credentials.from_authorized_user_info(token_info)
-
-    # ✅ Auto-refresh if expired
-    if creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-        with open("token.json", "w") as token_file:
-            token_file.write(creds.to_json())
-
-    service = build("gmail", "v1", credentials=creds)
-
-    message = MIMEText(body)
-    message["to"] = "offers@capitalreigroup.com"
-    message["from"] = "ccinvestre@gmail.com"
-    message["subject"] = subject
-
-    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
-    service.users().messages().send(userId="me", body={"raw": raw}).execute()
 
 
 @app.route("/")
@@ -190,6 +159,8 @@ def send_offer():
     financing = request.form.get("financing", "Cash or Hard Money")
     close_of_escrow = request.form.get("close_of_escrow", "30")
     terms = request.form["terms"]
+    lead_id = request.form.get("lead_id", "")
+    opportunity_id = request.form.get("opportunity_id", "")
     offer_sent_timestamp = datetime.now().strftime("%Y-%m-%d %I:%M %p")
 
     print("Generating PDF with the following details:")
@@ -215,9 +186,27 @@ def send_offer():
         )
         print(f"✅ PDF generated successfully at: {pdf_path}")
 
-        send_email(
+        email_sent = send_email(
             seller_email, pdf_path, property_address, offer_amount, offer_sent_timestamp
         )
+
+        # Send webhook to Zapier to create Offer record in Salesforce
+        if email_sent:
+            webhook_url = "https://hooks.zapier.com/hooks/catch/6774691/urko8wo/"
+            webhook_data = {
+                "offer_amount": offer_amount,
+                "property_address": property_address,
+                "seller_email": seller_email,
+                "lead_id": lead_id,
+                "opportunity_id": opportunity_id,
+            }
+
+            try:
+                requests.post(webhook_url, json=webhook_data)
+                print("✅ Offer logged in Salesforce")
+            except Exception as e:
+                print(f"⚠️ Failed to log in Salesforce: {e}")
+
     except Exception as e:
         print(f"❌ Error: {e}")
 
@@ -230,86 +219,8 @@ def send_offer():
     Financing: {financing} <br>
     Close of Escrow: {close_of_escrow} days <br>
     Terms: {terms} <br>
-    <br><strong>Your offer has been sent!</strong>
+    <br><strong>Your offer has been sent and logged in Salesforce!</strong>
     """
-
-
-# @app.route("/accept")
-# def accept_offer():
-#    seller_email = request.args.get("email")
-#    property_address = request.args.get("address")
-#    offer_sent_timestamp = request.args.get("sent")
-#    offer_amount = request.args.get("offer")
-
-# Send notification to team
-#    subject = f"🎉 Offer Accepted - {property_address}"
-#    body = f"""
-#    The seller has accepted the offer!
-
-#    📍 Property: {property_address}
-#    📧 Email: {seller_email}
-#    💰 Accepted Offer: ${int(offer_amount):,}
-#    📅 Offer Originally Sent: {offer_sent_timestamp}
-
-#    Please follow up ASAP.
-#    """
-#    send_team_notification(subject, body)
-
-#    return f"""
-#    <h2>Thank You!</h2>
-#    <p>Your offer for {property_address} has been accepted.</p>
-#    <p>Our team will reach out to you shortly to finalize the details.</p>
-#    """
-
-
-# @app.route("/counter", methods=["GET", "POST"])
-# def counter_offer():
-#    if request.method == "POST":
-#        seller_email = request.form["email"]
-#        property_address = request.form["address"]
-#        original_offer = request.form["offer"]
-#        counter_amount = request.form["counter_offer"]
-#        notes = request.form["notes"]
-#        offer_sent_timestamp = request.args.get("sent")
-
-#        subject = f"Counter Offer Received for {property_address}"
-#        body = f"""
-#        A counteroffer has been submitted for {property_address}.
-
-#        📧 Seller Email: {seller_email}
-#        📅 Offer Originally Sent: {offer_sent_timestamp}
-#        💰 Original Offer: ${int(original_offer):,}
-#        🔁 Counter Offer: ${int(counter_amount):,}
-#        📝 Notes: {notes}
-#        """
-
-#        send_team_notification(subject, body)
-
-#        return "<h2>Thank you! Your counteroffer has been submitted.</h2>"
-
-#    seller_email = request.args.get("email")
-#    property_address = request.args.get("address")
-#    original_offer = request.args.get("offer")
-#    offer_sent_timestamp = request.args.get("sent")
-
-#    return f"""
-#    <h2>Submit a Counter Offer</h2>
-#    <form method="post">
-#        <input type="hidden" name="email" value="{seller_email}">
-#        <input type="hidden" name="address" value="{property_address}">
-#        <input type="hidden" name="offer" value="{original_offer}">
-#        <input type="hidden" name="sent" value="{offer_sent_timestamp}">
-
-
-#        <label for="counter_offer">Your Counter Offer:</label>
-#        <input type="number" name="counter_offer" required><br><br>
-
-#        <label for="notes">Additional Notes:</label>
-#        <textarea name="notes"></textarea><br><br>
-
-#        <button type="submit">Submit Counter Offer</button>
-#    </form>
-#    """
 
 
 if __name__ == "__main__":
