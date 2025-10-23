@@ -10,19 +10,19 @@
     <form action="/send_offer" method="post">
 
         <label for="seller_name">Seller Name:</label>
-        <input type="text" name="seller_name"><br>
+        <input type="text" name="seller_name" id="seller_name"><br>
         <small style="color:gray;">Name not required — will default to "Homeowner" if left blank</small><br><br>
 
         <label for="email">Seller Email: <span style="color:red">*</span></label>
-        <input type="email" name="email" required><br>
+        <input type="email" name="email" id="email" required><br>
         <small style="color:gray;">Required – we'll send the offer to this email</small><br><br>
 
         <label for="address">Property Address: <span style="color:red">*</span></label>
-        <input type="text" name="address" required><br>
+        <input type="text" name="address" id="address" required><br>
         <small style="color:gray;">Required – address of the property you're offering on</small><br><br>
 
         <label for="offer">Offer Amount: <span style="color:red">*</span></label>
-        <input type="number" name="offer" required><br>
+        <input type="number" name="offer" id="offer" required><br>
         <small style="color:gray;">Required – the price you're offering</small><br><br>
 
         <label for="inspection_period">Inspection Period (days):</label>
@@ -46,8 +46,10 @@
     </form>
 
     <script>
-        // Get URL parameters to populate hidden fields
+        // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
+        
+        // Populate hidden fields
         const leadId = urlParams.get('lead_id');
         const opportunityId = urlParams.get('opportunity_id');
         
@@ -56,6 +58,21 @@
         }
         if (opportunityId) {
             document.getElementById('opportunity_id').value = opportunityId;
+        }
+        
+        // Pre-fill form fields from URL parameters
+        const sellerName = urlParams.get('seller_name');
+        const email = urlParams.get('email');
+        const address = urlParams.get('address');
+        
+        if (sellerName) {
+            document.getElementById('seller_name').value = sellerName;
+        }
+        if (email) {
+            document.getElementById('email').value = email;
+        }
+        if (address) {
+            document.getElementById('address').value = address;
         }
     </script>
 </body>
